@@ -3,22 +3,53 @@ var util = require('util');
 var _ = require('lodash');
 var argv = require('yargs').argv;
 
-console.time();
-var result = fold(argv._.join('').toUpperCase().split(''));
-console.timeEnd();
+var n = parseInt(argv._[0], 10);
 
-printPoints(result.points);
-console.log('\nscore: ' + result.score);
+
+//var result = fold(argv._.join('').toUpperCase().split(''));
+
+//printPoints(result.points);
+//console.log('\nscore: ' + result.score);
+
+var count = 0;
+var perms = 2 << n - 1;
+var string, result;
+
+console.time('elapsed');
+for(var i = 0; i < perms; i++) {
+	string = asString(i, n).split('');
+	result = fold(string);
+
+	count += result.score;
+}
+console.timeEnd('elapsed');
+
+console.log(count);
+
+function asString(n, len) {
+	var mask, i, string = [];
+	for(i = 0; i < len; i++) {
+		mask = 1 << i;
+		string.push( (n & mask) ? 'H' : 'P' );
+	}
+
+	return string.join('');
+}
 
 function fold(string) {
-	if(string.length < 2) return 0;
+	if(string.length < 2) return { score: 0 };
 	if(string.length <= 3) {
 		var x = 0;
 		var points = string.map(function(char) {
 			return new Point(char, x++, 0);		
 		});
 
-		return countHPairs(points);
+		//console.log(util.inspect(_.pick(string, 'char')));
+
+		return  {
+			string: _.pluck(string, 'char').join(''),
+			score: countHPairs(points)
+		};
 	}
 
 	var best = null;
