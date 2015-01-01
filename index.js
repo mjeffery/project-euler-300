@@ -5,11 +5,7 @@ var argv = require('yargs').argv;
 
 var n = parseInt(argv._[0], 10);
 
-
-//var result = fold(argv._.join('').toUpperCase().split(''));
-
-//printPoints(result.points);
-//console.log('\nscore: ' + result.score);
+var expansions = 0;
 
 var count = 0;
 var perms = 2 << n - 1;
@@ -24,7 +20,8 @@ for(var i = 0; i < perms; i++) {
 }
 console.timeEnd('elapsed');
 
-console.log(count);
+console.log('total H bonds: ' + count);
+console.log('nodes expanded: ' + expansions);
 
 function asString(n, len) {
 	var mask, i, string = [];
@@ -43,8 +40,6 @@ function fold(string) {
 		var points = string.map(function(char) {
 			return new Point(char, x++, 0);		
 		});
-
-		//console.log(util.inspect(_.pick(string, 'char')));
 
 		return  {
 			string: _.pluck(string, 'char').join(''),
@@ -73,10 +68,6 @@ function fold(string) {
 		}
 		else {
 			queue = queue.concat(expand(curr, string));
-
-			//printPointMaps(queue.map(createPointsMap), 3);
-			//console.log('queue: ' + util.inspect(queue));
-			//console.log('----------------------------');
 		}
 	}
 
@@ -102,8 +93,10 @@ function expand(pointArray, string) {
 			var x = curr.x + dx;
 			var y = curr.y + dy;
 			
-			if(!overlaps(pointArray, x, y))
+			if(!overlaps(pointArray, x, y)) {
 			 	newNodes.push(new Point(char, x, y));
+				expansions++;
+			}
 		}
 	}
 
@@ -113,10 +106,6 @@ function expand(pointArray, string) {
 
 		return array;
 	});
-}
-
-function nextChar(pointArray, string) {
-	return string[pointArray.length];
 }
 
 function Point(char, x, y) {
