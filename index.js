@@ -67,7 +67,7 @@ function fold(string) {
 			}
 		}
 		else {
-			queue = queue.concat(expand(curr, string));
+			Array.prototype.push.apply(queue, expand(curr, string));
 		}
 	}
 
@@ -78,27 +78,55 @@ function fold(string) {
 }
 
 function expand(pointArray, string) {
-	var newNodes = [];
-
 	if(pointArray.length <= string.length) {
 		var curr = pointArray[pointArray.length - 1];
-		var char = string[pointArray.length];
 
-		tryExpand(1, 0);
-		tryExpand(0, 1);
-		tryExpand(-1, 0);
-		tryExpand(0, -1);
-
-		function tryExpand(dx, dy) {
-			var x = curr.x + dx;
-			var y = curr.y + dy;
-			
-			if(!overlaps(pointArray, x, y)) {
-			 	newNodes.push(new Point(char, x, y));
-				expansions++;
-			}
+		if(anyHBondsLeft(pointArray, string)) {
+			var char = string[pointArray.length];
+			return expandPointArray(pointArray, char);
+		}
+		else {
+			var tail = fitTail(pointArray, string.length);
+			if(tail != null)
+				return [ tail ];
 		}
 	}
+	
+	return [];
+}
+
+function anyHBondsLeft(pointArray, string) {
+	for(var i = pointArray.length; i < string.length; i++) {
+		if(string[i] === 'H') 
+			return true;
+	}
+
+	return false;
+}
+
+//Fill the rest of the pointArray up to length n with P's
+function fitTail(pointArray, n) {
+	var queue = [ pointArray.slice() ];
+	while(queue.length > 0) {
+		var curr = queue.pop();
+
+		if(curr.length == n) 
+			return curr;
+		else
+			Array.prototype.push.apply(queue, expandPointArray(curr, 'P'));	
+	}
+
+	return null;
+}
+
+function expandPointArray(pointArray, char) {
+	var newNodes = [],
+		curr = pointArray[pointArray.length - 1];
+
+	tryExpand(1,0);
+	tryExpand(0,1);
+	tryExpand(-1,0);
+	tryExpand(0,-1);
 
 	return newNodes.map(function(node) {
 		var array = pointArray.slice();
@@ -106,6 +134,16 @@ function expand(pointArray, string) {
 
 		return array;
 	});
+
+	function tryExpand(dx, dy) {
+		var x = curr.x + dx;
+		var y = curr.y + dy;
+		
+		if(!overlaps(pointArray, x, y)) {
+			newNodes.push(new Point(char, x, y));
+			expansions++;
+		}
+	}
 }
 
 function Point(char, x, y) {
